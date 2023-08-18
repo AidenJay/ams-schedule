@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fa.sesa.schedule.job.admin.dao.XxlJobRegistryDao">
+
+    <resultMap id="XxlJobRegistry" type="com.fa.sesa.schedule.job.admin.core.model.XxlJobRegistry" >
+        <result column="id" property="id" />
+        <result column="registry_group" property="registryGroup" />
+        <result column="registry_key" property="registryKey" />
+        <result column="registry_value" property="registryValue" />
+        <result column="update_time" property="updateTime" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+		t.registry_group,
+		t.registry_key,
+		t.registry_value,
+		t.update_time
+    </sql>
+
+    <select id="findDead" parameterType="java.util.HashMap" resultType="java.lang.Integer" >
+        SELECT t.id
+        FROM xxl_job_registry AS t
+        WHERE t.update_time <![CDATA[ < ]]> DATE_ADD(#{nowTime},INTERVAL -#{timeout} SECOND)
+    </select>
+    <select id="findDead" parameterType="java.util.HashMap" resultType="java.lang.Integer" databaseId="oracle">
+        SELECT t.id
+        FROM xxl_job_registry t
+        WHERE t.update_time <![CDATA[ < ]]> ( current_timestamp - #{timeout}/86400 )
+    </select>
+    <select id="findDead" parameterType="java.util.HashMap" resultType="java.lang.Integer" databaseId="pgsql">
+        SELECT t.id
+        FROM xxl_job_registry t
+        WHERE t.update_time <![CDATA[ < ]]> ( current_timestamp -(#{timeout}||' sec')::interval  )
+    </select>
+
+    <delete id="removeDead" parameterType="java.lang.Integer" >
+        DELETE FROM xxl_job_registry
+        WHERE id in
+        <foreach collection="ids" item="item" open="(" close=")" separator="," >
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="removeDead" parameterType="java.lang.Integer" databaseId="oracle">
+        DELETE FROM xxl_job_registry
+        WHERE id in
+        <foreach collection="ids" item="item" open="(" close=")" separator="," >
+            #{item}
+        </foreach>
+    </delete>
+    <delete id="removeDead" parameterType="java.lang.Integer" databaseId="pgsql">
+        DELETE FROM xxl_job_registry
+        WHERE id in
+        <foreach collection="ids" item="item" open="(" close=")" separator="," >
+            #{item}
+        </foreach>
+    </delete>
+
+    <select id="findAll" parameterType="java.util.HashMap" resultMap="XxlJobRegistry">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_registry AS t
+        WHERE t.update_time <![CDATA[ > ]]> DATE_ADD(#{nowTime},INTERVAL -#{timeout} SECOND)
+    </select>
+    <select id="findAll" parameterType="java.util.HashMap" resultMap="XxlJobRegistry" databaseId="oracle">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_registry t
+        WHERE t.update_time <![CDATA[ > ]]> ( current_timestamp - #{timeout}/86400 )
+    </select>
+    <select id="findAll" parameterType="java.util.HashMap" resultMap="XxlJobRegistry" databaseId="pgsql">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_registry t
+        WHERE t.update_time <![CDATA[ > ]]> ( current_timestamp - (#{timeout}||' sec')::interval )
+    </select>
+
+    <update id="registryUpdate" >
+        UPDATE xxl_job_registry
+        SET `update_time` = #{updateTime}
+        WHERE `registry_group` = #{registryGroup}
+          AND `registry_key` = #{registryKey}
+          AND `registry_value` = #{registryValue}
+    </update>
+    <update id="registryUpdate" databaseId="oracle">
+        UPDATE xxl_job_registry
+        SET update_time = #{updateTime}
+        WHERE registry_group = #{registryGroup, jdbcType=VARCHAR}
+          AND registry_key = #{registryKey, jdbcType=VARCHAR}
+          AND registry_value = #{registryValue, jdbcType=VARCHAR}
+    </update>
+    <update id="registryUpdate" databaseId="pgsql">
+        UPDATE xxl_job_registry
+        SET update_time = #{updateTime}
+        WHERE registry_group = #{registryGroup, jdbcType=VARCHAR}
+          AND registry_key = #{registryKey, jdbcType=VARCHAR}
+          AND registry_value = #{registryValue, jdbcType=VARCHAR}
+    </update>
+
+    <insert id="registrySave" >
+        INSERT INTO xxl_job_registry( `registry_group` , `registry_key` , `registry_value`, `update_time`)
+        VALUES( #{registryGroup}  , #{registryKey} , #{registryValue}, #{updateTime})
+    </insert>
+    <insert id="registrySave" databaseId="oracle">
+        <selectKey resultType="int" order="BEFORE" keyProperty="id">
+            select XXL_JOB_REGISTRY_SEQ.nextval from dual
+        </selectKey>
+        INSERT INTO xxl_job_registry( id, registry_group , registry_key , registry_value, update_time)
+        VALUES( #{id}, #{registryGroup, jdbcType=VARCHAR}  , #{registryKey, jdbcType=VARCHAR} , #{registryValue, jdbcType=VARCHAR}, #{updateTime, jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="registrySave" databaseId="pgsql">
+        <selectKey resultType="int" order="BEFORE" keyProperty="id">
+            select nextval('XXL_JOB_REGISTRY_SEQ')
+        </selectKey>
+        INSERT INTO xxl_job_registry( id, registry_group , registry_key , registry_value, update_time)
+        VALUES( #{id}, #{registryGroup, jdbcType=VARCHAR}  , #{registryKey, jdbcType=VARCHAR} , #{registryValue, jdbcType=VARCHAR}, #{updateTime, jdbcType=TIMESTAMP})
+    </insert>
+
+    <delete id="registryDelete" >
+        DELETE FROM xxl_job_registry
+        WHERE registry_group = #{registryGroup}
+          AND registry_key = #{registryKey}
+          AND registry_value = #{registryValue}
+    </delete>
+    <delete id="registryDelete" databaseId="oracle">
+        DELETE FROM xxl_job_registry
+        WHERE registry_group = #{registryGroup, jdbcType=VARCHAR}
+          AND registry_key = #{registryKey, jdbcType=VARCHAR}
+          AND registry_value = #{registryValue, jdbcType=VARCHAR}
+    </delete>
+    <delete id="registryDelete" databaseId="pgsql">
+        DELETE FROM xxl_job_registry
+        WHERE registry_group = #{registryGroup, jdbcType=VARCHAR}
+          AND registry_key = #{registryKey, jdbcType=VARCHAR}
+          AND registry_value = #{registryValue, jdbcType=VARCHAR}
+    </delete>
+
+</mapper>

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.fa.sesa.schedule.job.admin.dao.XxlJobUserDao">
+
+    <resultMap id="XxlJobUser" type="com.fa.sesa.schedule.job.admin.core.model.XxlJobUser" >
+        <result column="id" property="id" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="role" property="role" />
+        <result column="permission" property="permission" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        t.id,
+		t.username,
+		t.password,
+		t.role,
+		t.permission
+    </sql>
+
+    <select id="pageList" parameterType="java.util.HashMap" resultMap="XxlJobUser">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_user AS t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="username != null and username != ''">
+                AND t.username like CONCAT(CONCAT('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+        ORDER BY username ASC
+        LIMIT #{offset}, #{pagesize}
+    </select>
+    <select id="pageList" parameterType="java.util.HashMap" resultMap="XxlJobUser" databaseId="oracle">
+        SELECT *  from (
+        SELECT t1.*,rownum rn FROM (
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_user t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="username != null and username != ''">
+                AND t.username like CONCAT(CONCAT('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+        ORDER BY username ASC
+        ) t1
+        )
+        WHERE rn <![CDATA[ > ]]> ${offset} and rn <![CDATA[ <= ]]> ${offset}+#{pagesize}
+    </select>
+    <select id="pageList" parameterType="java.util.HashMap" resultMap="XxlJobUser" databaseId="pgsql">
+        SELECT *  from (
+        SELECT t1.*,ROW_NUMBER() OVER() rn FROM (
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_user t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="username != null and username != ''">
+                AND t.username like CONCAT(CONCAT('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+        ORDER BY username ASC
+        ) t1
+        ) cc
+        WHERE cc.rn <![CDATA[ > ]]> ${offset} and cc.rn <![CDATA[ <= ]]> ${offset}+#{pagesize}
+    </select>
+
+    <select id="pageListCount" parameterType="java.util.HashMap" resultType="int">
+        SELECT count(1)
+        FROM xxl_job_user AS t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="username != null and username != ''">
+                AND t.username like CONCAT(CONCAT('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+    </select>
+    <select id="pageListCount" parameterType="java.util.HashMap" resultType="int" databaseId="oracle">
+        SELECT count(1)
+        FROM xxl_job_user t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="username != null and username != ''">
+                AND t.username like CONCAT(CONCAT('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+    </select>
+    <select id="pageListCount" parameterType="java.util.HashMap" resultType="int" databaseId="pgsql">
+        SELECT count(1)
+        FROM xxl_job_user t
+        <trim prefix="WHERE" prefixOverrides="AND | OR" >
+            <if test="username != null and username != ''">
+                AND t.username like CONCAT(CONCAT('%', #{username}), '%')
+            </if>
+            <if test="role gt -1">
+                AND t.role = #{role}
+            </if>
+        </trim>
+    </select>
+
+    <select id="loadByUserName" parameterType="java.util.HashMap" resultMap="XxlJobUser">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_user AS t
+        WHERE t.username = #{username}
+    </select>
+    <select id="loadByUserName" parameterType="java.util.HashMap" resultMap="XxlJobUser" databaseId="oracle">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_user t
+        WHERE t.username = #{username}
+    </select>
+    <select id="loadByUserName" parameterType="java.util.HashMap" resultMap="XxlJobUser" databaseId="pgsql">
+        SELECT <include refid="Base_Column_List" />
+        FROM xxl_job_user t
+        WHERE t.username = #{username}
+    </select>
+
+    <insert id="save" parameterType="com.fa.sesa.schedule.job.admin.core.model.XxlJobUser" useGeneratedKeys="true" keyProperty="id" >
+        INSERT INTO xxl_job_user (
+            username,
+            password,
+            role,
+            permission
+        ) VALUES (
+                     #{username},
+                     #{password},
+                     #{role},
+                     #{permission}
+                 );
+    </insert>
+    <insert id="save" parameterType="com.fa.sesa.schedule.job.admin.core.model.XxlJobUser" databaseId="oracle">
+        <selectKey resultType="int" order="BEFORE" keyProperty="id">
+            select XXL_JOB_USER_SEQ.nextval from dual
+        </selectKey>
+        INSERT INTO xxl_job_user (
+        id,
+        username,
+        password,
+        role,
+        permission
+        ) VALUES (
+        #{id},
+        #{username, jdbcType=VARCHAR},
+        #{password, jdbcType=VARCHAR},
+        #{role, jdbcType=NUMERIC},
+        #{permission, jdbcType=VARCHAR}
+        )
+    </insert>
+    <insert id="save" parameterType="com.fa.sesa.schedule.job.admin.core.model.XxlJobUser" databaseId="pgsql">
+        <selectKey resultType="int" order="BEFORE" keyProperty="id">
+            select nextval('XXL_JOB_USER_SEQ')
+        </selectKey>
+        INSERT INTO xxl_job_user (
+        id,
+        username,
+        password,
+        role,
+        permission
+        ) VALUES (
+        #{id},
+        #{username, jdbcType=VARCHAR},
+        #{password, jdbcType=VARCHAR},
+        #{role, jdbcType=NUMERIC},
+        #{permission, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id="update" parameterType="com.fa.sesa.schedule.job.admin.core.model.XxlJobUser" >
+        UPDATE xxl_job_user
+        SET
+        <if test="password != null and password != ''">
+            password = #{password},
+        </if>
+        role = #{role},
+        permission = #{permission}
+        WHERE id = #{id}
+    </update>
+    <update id="update" parameterType="com.fa.sesa.schedule.job.admin.core.model.XxlJobUser" databaseId="oracle">
+        UPDATE xxl_job_user
+        SET
+        <if test="password != null and password != ''">
+            password = #{password, jdbcType=VARCHAR},
+        </if>
+        role = #{role, jdbcType=NUMERIC},
+        permission = #{permission, jdbcType=VARCHAR}
+        WHERE id = #{id}
+    </update>
+    <update id="update" parameterType="com.fa.sesa.schedule.job.admin.core.model.XxlJobUser" databaseId="pgsql">
+        UPDATE xxl_job_user
+        SET
+        <if test="password != null and password != ''">
+            password = #{password, jdbcType=VARCHAR},
+        </if>
+        role = #{role, jdbcType=NUMERIC},
+        permission = #{permission, jdbcType=VARCHAR}
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.util.HashMap">
+        DELETE
+        FROM xxl_job_user
+        WHERE id = #{id}
+    </delete>
+    <delete id="delete" parameterType="java.util.HashMap" databaseId="oracle">
+        DELETE
+        FROM xxl_job_user
+        WHERE id = #{id}
+    </delete>
+    <delete id="delete" parameterType="java.util.HashMap" databaseId="pgsql">
+        DELETE
+        FROM xxl_job_user
+        WHERE id = #{id}
+    </delete>
+
+</mapper>

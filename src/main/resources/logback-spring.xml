@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="com/fa/sesa/logging/logback/properties.xml"/>
+    <springProfile name="prod">
+        <include resource="com/fa/sesa/logging/logback/app/sizebased.xml"/>
+        <include resource="com/fa/sesa/logging/logback/datasource/sizebased.xml"/>
+    </springProfile>
+
+    <springProfile name="!prod">
+        <include resource="com/fa/sesa/logging/logback/app/timebased.xml"/>
+        <include resource="com/fa/sesa/logging/logback/datasource/timebased.xml"/>
+    </springProfile>
+
+</configuration>
